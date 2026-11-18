@@ -184,7 +184,9 @@ h1 {
 .roll .col.tens.on { opacity: 1; }
 .roll .st { display: flex; flex-direction: column; transition: transform .38s cubic-bezier(.2, .9, .3, 1.12); }
 .roll .st span { display: block; height: 1em; text-align: center; }
-.roll .dot { width: .3em; text-align: center; }
+.roll .num { display: flex; transition: transform .25s ease-out; }
+.roll.nt .num { transform: translateX(-.31em); }
+.roll .dot { width: .52em; text-align: center; }
 .roll.unset { color: var(--muted); opacity: .55; }
 .roll.shake { animation: shake .35s; }
 @keyframes shake { 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(4px); } }
@@ -252,10 +254,16 @@ body.dragging, body.dragging * { cursor: grabbing !important; -webkit-user-selec
 
 @media (max-width: 600px) {
   .entry { grid-template-columns: 76px minmax(0, 1fr); gap: 14px; }
-  .take { grid-template-columns: 58px 44px minmax(0, 1fr); gap: 8px; }
+  .take { grid-template-columns: 64px minmax(0, 1fr); gap: 6px 10px; }
+  .take > div:last-child { grid-column: 1 / -1; }
+  .nav { gap: 4px 14px; }
+  .nav a { font-size: 12px; letter-spacing: .04em; }
   .row { grid-template-columns: 30px 56px minmax(0, 1fr); }
   .row.q { grid-template-columns: 56px minmax(0, 1fr); }
-  .row.rk { grid-template-columns: 26px 26px 56px minmax(0, 1fr); }
+  .row.rk { grid-template-columns: 26px 26px 56px minmax(0, 1fr); grid-template-rows: auto auto; row-gap: 6px; }
+  .row.rk > :nth-child(-n+3) { grid-row: 1 / 3; }
+  .row.rk > :nth-child(4) { grid-column: 4; grid-row: 1; }
+  .row.rk > :nth-child(5) { grid-column: 4; grid-row: 2; justify-content: flex-start; }
   .grip { width: 26px; }
   .row > .tools { grid-column: 1 / -1; justify-content: flex-start; }
   .pos { font-size: 20px; }
@@ -742,7 +750,7 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
       <div class="field rate"><span class="lab" id="rate-lab">Rating out of 10</span>
         <div class="roll${S.sheet.rating == null ? ' unset' : ''}" id="roll" role="img" aria-label="Rating">${rollHtml()}</div>
         <div class="rate-row"><button type="button" class="btn small" data-act="rate-step" data-d="-1" aria-label="Lower rating by 0.1">−</button>
-          <input id="f-rating" type="range" min="0" max="10" step="0.1" value="${S.sheet.rating == null ? 5 : S.sheet.rating}" aria-labelledby="rate-lab">
+          <input id="f-rating" type="range" min="0" max="10" step="0.1" value="${S.sheet.rating == null ? 0 : S.sheet.rating}" aria-labelledby="rate-lab">
           <button type="button" class="btn small" data-act="rate-step" data-d="1" aria-label="Raise rating by 0.1">+</button></div>
         <span class="hint" id="rate-hint">${S.sheet.rating == null ? 'Slide to set your rating.' : ''}</span></div>
       <div class="field"><label for="f-fav">Favorite songs</label><div class="addrow"><input id="f-fav" maxlength="100" placeholder="Song title, then Enter" autocomplete="off"><button class="btn" type="button" data-act="addfav">Add</button></div>
@@ -758,13 +766,14 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
   /* ---------- rating roller ---------- */
   function rollHtml() {
     const d = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<span>${n}</span>`).join('');
-    return `<div class="col tens"><div class="st"><span>0</span><span>1</span></div></div><div class="col"><div class="st">${d}</div></div><div class="dot">.</div><div class="col"><div class="st">${d}</div></div>`;
+    return `<div class="num"><div class="col tens"><div class="st"><span>0</span><span>1</span></div></div><div class="col"><div class="st">${d}</div></div><div class="dot">.</div><div class="col"><div class="st">${d}</div></div></div>`;
   }
   function setRoll(v) {
     const el = $('roll'); if (!el) return;
     const n = Math.round(Math.max(0, Math.min(10, v)) * 10), cols = el.querySelectorAll('.col');
     const t = Math.floor(n / 100), o = Math.floor(n / 10) % 10, f = n % 10;
     cols[0].querySelector('.st').style.transform = `translateY(-${t}em)`; cols[0].classList.toggle('on', !!t);
+    el.classList.toggle('nt', !t);
     cols[1].querySelector('.st').style.transform = `translateY(-${o}em)`;
     cols[2].querySelector('.st').style.transform = `translateY(-${f}em)`;
     el.setAttribute('aria-label', `Rating ${(n / 10).toFixed(1)} out of 10`);
@@ -939,7 +948,11 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
       } else render();
     }, 340);
   }
-  document.addEventListener('pointerdown', e => { const g = e.target.closest && e.target.closest('.grip'); if (g) startDrag(e, g); });
+  document.addEventListener('pointerdown', e => {
+    const g = e.target.closest && e.target.closest('.grip'); if (g) startDrag(e, g);
+    // Grabbing the slider at 0 counts as choosing 0, since no input event fires until it moves.
+    if (e.target.id === 'f-rating' && S.sheet && S.sheet.rating == null) setRating(parseFloat(e.target.value), true);
+  });
   document.addEventListener('pointermove', e => { if (S.drag && e.pointerId === S.drag.pid) { S.drag.cy = e.clientY; dragUpdate(); } });
   document.addEventListener('pointerup', e => { if (S.drag && e.pointerId === S.drag.pid) endDrag(true); });
   document.addEventListener('pointercancel', e => { if (S.drag && e.pointerId === S.drag.pid) endDrag(false); });
@@ -986,7 +999,7 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
         el.parentElement.querySelectorAll('.pick').forEach(b => b.setAttribute('aria-pressed', String(b === el)));
         break;
       }
-      case 'rate-step': setRating((S.sheet.rating == null ? 5 : S.sheet.rating) + 0.1 * +el.dataset.d, false); break;
+      case 'rate-step': setRating((S.sheet.rating == null ? 0 : S.sheet.rating) + 0.1 * +el.dataset.d, false); break;
       case 'pickalbum': pickAlbum(+el.dataset.i); break;
       case 'picktrack': {
         const t = S.sheet.tracks[+el.dataset.i], at = S.sheet.favs.findIndex(f => f.toLowerCase() === t.toLowerCase());
