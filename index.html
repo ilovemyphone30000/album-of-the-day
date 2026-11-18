@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <meta name="robots" content="noindex">
+<meta name="theme-color" content="#E8EBF0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0D0F1E" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="AOTD">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon.svg">
 <title>AOTD</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%232A44F5'/%3E%3Ccircle cx='50' cy='50' r='34' fill='%23F0481F'/%3E%3Ccircle cx='50' cy='50' r='9' fill='%23F2C500'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -59,7 +67,9 @@ body {
   padding-block: 28px 96px;
 }
 button, input, textarea, select { font: inherit; color: inherit; }
-button { cursor: pointer; }
+button { cursor: pointer; touch-action: manipulation; }
+a, button { -webkit-tap-highlight-color: transparent; }
+.fab { display: none; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 a { color: inherit; }
 .mono { font-family: var(--mono); }
@@ -191,7 +201,11 @@ h1 {
 .roll.shake { animation: shake .35s; }
 @keyframes shake { 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(4px); } }
 .rate-row { display: flex; align-items: center; gap: 10px; }
-.rate-row input[type=range] { flex: 1; min-width: 0; accent-color: var(--fg); height: 32px; }
+.rate-row input[type=range] { flex: 1; min-width: 0; height: 44px; margin: 0; padding: 0; border: 0; background: transparent; -webkit-appearance: none; appearance: none; touch-action: pan-y; }
+.rate-row input[type=range]::-webkit-slider-runnable-track { height: 6px; background: var(--rule); border: 1.5px solid var(--fg); }
+.rate-row input[type=range]::-moz-range-track { height: 6px; background: var(--rule); border: 1.5px solid var(--fg); }
+.rate-row input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 30px; margin-top: -13px; background: var(--fg); border: 3px solid var(--paper); box-shadow: 0 0 0 1.5px var(--fg); border-radius: 0; }
+.rate-row input[type=range]::-moz-range-thumb { width: 24px; height: 24px; background: var(--fg); border: 3px solid var(--paper); box-shadow: 0 0 0 1.5px var(--fg); border-radius: 0; }
 .rate .hint { min-height: 1.4em; text-align: center; }
 @media (prefers-reduced-motion: reduce) { .roll .st, .roll .col.tens { transition: none; } .roll.shake { animation: none; } }
 .tracklist { display: grid; margin-top: 4px; border: 1.5px solid var(--fg); background: var(--card); }
@@ -260,11 +274,11 @@ body.dragging, body.dragging * { cursor: grabbing !important; -webkit-user-selec
   .nav a { font-size: 12px; letter-spacing: .04em; }
   .row { grid-template-columns: 30px 56px minmax(0, 1fr); }
   .row.q { grid-template-columns: 56px minmax(0, 1fr); }
-  .row.rk { grid-template-columns: 26px 26px 56px minmax(0, 1fr); grid-template-rows: auto auto; row-gap: 6px; }
+  .row.rk { grid-template-columns: 36px 26px 56px minmax(0, 1fr); grid-template-rows: auto auto; row-gap: 6px; }
   .row.rk > :nth-child(-n+3) { grid-row: 1 / 3; }
   .row.rk > :nth-child(4) { grid-column: 4; grid-row: 1; }
   .row.rk > :nth-child(5) { grid-column: 4; grid-row: 2; justify-content: flex-start; }
-  .grip { width: 26px; }
+  .grip { width: 36px; }
   .row > .tools { grid-column: 1 / -1; justify-content: flex-start; }
   .pos { font-size: 20px; }
 }
@@ -308,9 +322,38 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
   background: var(--fg); color: var(--paper); padding: 10px 16px; font: 500 13px var(--mono); max-width: calc(100vw - 32px); display: none;
 }
 #toast.show { display: block; }
+/* phone: thumb-reach tab bar, one-tap Log button, bottom sheet, bigger tap targets */
+@media (max-width: 600px) {
+  .wrap { padding-top: calc(20px + env(safe-area-inset-top, 0px)); padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px)); }
+  .nav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 15; margin: 0; gap: 0;
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+    background: var(--paper); border-top: 1.5px solid var(--fg); border-bottom: 0;
+  }
+  .nav a { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 1px; min-height: 58px; padding: 11px 0 6px; margin: 0; border-bottom: 0; border-top: 4px solid transparent; margin-top: -1.5px; font-size: 11px; letter-spacing: .04em; text-align: center; }
+  .nav a[aria-current="page"] { border-top-color: var(--fg); }
+  .nav .count { margin: 0; }
+  .fab {
+    display: inline-flex; align-items: center; gap: 6px; position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); z-index: 14;
+    bottom: calc(74px + env(safe-area-inset-bottom, 0px)); min-height: 52px; padding: 0 20px;
+    border: 1.5px solid var(--fg); background: var(--fg); color: var(--paper); font: 700 16px var(--display); box-shadow: 4px 4px 0 var(--j);
+  }
+  body.sheet-open .fab { display: none; }
+  .btn.small { min-height: 40px; padding: 6px 12px; }
+  .filters button, .pick { min-height: 40px; }
+  .who { min-height: 40px; }
+  .rate-row .btn { min-width: 48px; min-height: 48px; }
+  .trk { min-height: 44px; }
+  .sugg button { min-height: 56px; }
+  #sheet { padding: 0; align-items: flex-end; overscroll-behavior: contain; }
+  .panel { max-width: none; max-height: 92vh; max-height: 92dvh; border-width: 1.5px 0 0; padding: 20px 16px 0; overscroll-behavior: contain; }
+  .panel .foot { position: sticky; bottom: 0; z-index: 3; margin: 22px -16px 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--paper); border-top: 1.5px solid var(--fg); }
+  #toast { bottom: calc(140px + env(safe-area-inset-bottom, 0px)); }
+}
 @media (prefers-reduced-motion: no-preference) {
   .panel { animation: rise .16s ease-out; }
-  @keyframes rise { from { transform: translateY(10px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes rise { from { transform: translateY(28px); opacity: 0; } to { transform: none; opacity: 1; } }
 }
 </style>
 </head>
@@ -371,7 +414,10 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
           await load(`https://www.gstatic.com/firebasejs/${V}/firebase-app-compat.js`);
           await load(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore-compat.js`);
           if (!firebase.apps.length) firebase.initializeApp(cfg);
-          return firebase.firestore();
+          const db = firebase.firestore();
+          // Keep a copy on the device so the log opens instantly and survives a bad signal.
+          try { await db.enablePersistence({ synchronizeTabs: true }); } catch {}
+          return db;
         } catch { return null; }
       },
     };
@@ -476,7 +522,8 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
     derive();
     const nL = D.listened.length, nQ = D.queue.length;
     const me = S.me ? `<button class="who ${pcls(S.me.key)}" type="button" data-act="who" aria-label="Change who is logging"><span class="tag">${esc(S.me.name)}</span>Listening as</button>`
-      : `<button class="who" type="button" data-act="who">Who are you?</button>`;
+      : `<button class="who" type="button" data-act="who">Pick your name</button>`;
+    const listeners = new Set([...S.logs.map(l => slug(l.person)), ...Object.keys(S.ranks)]).size;
     let banner = '';
     if (S.status === 'nodb') banner = `<p class="banner">Can't reach the shared log. Check your connection and reload.</p>`;
     else if (window.claude && window.claude.mode === 'local') banner = `<p class="banner">Not connected to a shared database yet. Albums you add are saved in this browser only. The README explains how to connect one so everyone sees the same log.</p>`;
@@ -488,7 +535,7 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
       <a href="#ranking" ${S.tab === 'ranking' ? 'aria-current="page"' : ''}>Ranking<span class="count">${D.group.length}</span></a></nav>`;
     const view = S.status === 'loading' && !S.got.albums ? `<p class="banner">Loading the log…</p>` : S.tab === 'queue' ? viewQueue() : S.tab === 'ranking' ? viewRanking() : S.tab === 'calendar' ? viewCalendar() : viewLog();
     $('app').innerHTML = `<header class="top"><div><h1>AOTD</h1>
-      <p class="stats">Album of the Day · ${nL} logged · ${nQ} up next · ${peopleKeys().length} listeners</p></div>${me}</header>${banner}${S.tab === 'calendar' ? '' : weekStrip()}${nav}${view}`;
+      <p class="stats">Album of the Day · ${nL} logged · ${nQ} up next${listeners ? ` · ${listeners} listener${listeners === 1 ? '' : 's'}` : ''}</p></div>${me}</header>${banner}${S.tab === 'calendar' ? '' : weekStrip()}${nav}${view}${w() ? `<button type="button" class="fab" data-act="log-new" aria-label="Log an album">+ Log</button>` : ''}`;
     if (S.refocus) { const g = document.querySelector(`.grip[data-id="${S.refocus}"]`); if (g) g.focus(); S.refocus = null; }
     if (S.landed) { const id = S.landed; setTimeout(() => { if (S.landed === id) S.landed = null; }, 900); }
   }
@@ -545,7 +592,7 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
   function viewLog() {
     const t = today();
     const hasToday = D.listened.some(a => a.date === t);
-    const strip = w() && !hasToday ? `<div class="today"><div><p class="d">${esc(fmtDate(t))}</p><p class="m">Nothing logged for today yet.</p></div>
+    const strip = w() && !hasToday && D.listened.length ? `<div class="today"><div><p class="d">${esc(fmtDate(t))}</p><p class="m">Nothing logged for today yet.</p></div>
       <button class="btn" type="button" data-act="log-new">Log today's album</button></div>` : '';
     if (!D.listened.length) {
       return strip + `<div class="empty"><h2>No albums logged yet</h2><p>Log the first album of the day. It shows up here for everyone, with each person's rating and favorite songs.</p>
@@ -628,10 +675,10 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
   const sheetEl = $('sheet');
   function openSheet(html, focusId) {
     sheetEl.innerHTML = `<div class="panel">${html}</div>`;
-    sheetEl.classList.add('open');
+    sheetEl.classList.add('open'); document.body.classList.add('sheet-open');
     const f = focusId && $(focusId); if (f) f.focus(); else { const p = sheetEl.querySelector('input, button'); if (p) p.focus(); }
   }
-  function closeSheet() { S.sheet = null; sheetEl.classList.remove('open'); sheetEl.innerHTML = ''; }
+  function closeSheet() { S.sheet = null; sheetEl.classList.remove('open'); document.body.classList.remove('sheet-open'); sheetEl.innerHTML = ''; }
   let toastT;
   function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 3200); }
   const needDb = () => { if (S.db) return true; toast("Can't reach the shared log right now."); return false; };
@@ -657,9 +704,9 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
     <button type="button" class="pick" data-act="sug" data-v="" aria-pressed="${!cur}">Nobody</button></div>`;
   const coverPrev = a => (a.cover && COVER_OK.test(a.cover)) ? `<img class="sleeve" src="${esc(a.cover)}" alt="" referrerpolicy="no-referrer">` : '';
   const albumFields = a => `<div class="field"><label for="f-title">Album</label>
-    <div class="addrow"><div class="cprev" id="cover-prev">${coverPrev(a)}</div><input id="f-title" required maxlength="120" value="${esc(a.title || '')}" autocomplete="off" placeholder="Start typing to search"></div>
+    <div class="addrow"><div class="cprev" id="cover-prev">${coverPrev(a)}</div><input id="f-title" required maxlength="120" value="${esc(a.title || '')}" autocomplete="off" autocapitalize="words" enterkeyhint="search" placeholder="Start typing to search"></div>
     <span class="hint" id="sugg-note">Pick a match to fill in the artist, year and cover.</span><div class="sugg" id="sugg" hidden></div></div>
-    <div class="grid2"><div class="field"><label for="f-artist">Artist</label><input id="f-artist" required maxlength="120" value="${esc(a.artist || '')}" autocomplete="off"></div>
+    <div class="grid2"><div class="field"><label for="f-artist">Artist</label><input id="f-artist" required maxlength="120" value="${esc(a.artist || '')}" autocomplete="off" autocapitalize="words"></div>
     <div class="field"><label for="f-year">Year</label><input id="f-year" inputmode="numeric" maxlength="4" value="${esc(a.year || '')}" autocomplete="off"></div></div>
     <div class="field"><span class="lab">Suggested by</span>${suggestPicks(a.suggestedBy || '')}</div>`;
   const readAlbum = () => ({
@@ -753,7 +800,7 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
           <input id="f-rating" type="range" min="0" max="10" step="0.1" value="${S.sheet.rating == null ? 0 : S.sheet.rating}" aria-labelledby="rate-lab">
           <button type="button" class="btn small" data-act="rate-step" data-d="1" aria-label="Raise rating by 0.1">+</button></div>
         <span class="hint" id="rate-hint">${S.sheet.rating == null ? 'Slide to set your rating.' : ''}</span></div>
-      <div class="field"><label for="f-fav">Favorite songs</label><div class="addrow"><input id="f-fav" maxlength="100" placeholder="Song title, then Enter" autocomplete="off"><button class="btn" type="button" data-act="addfav">Add</button></div>
+      <div class="field"><label for="f-fav">Favorite songs</label><div class="addrow"><input id="f-fav" maxlength="100" placeholder="Song title, then Enter" autocomplete="off" autocapitalize="words" enterkeyhint="done"><button class="btn" type="button" data-act="addfav">Add</button></div>
         <div class="chips" id="favs"></div>
         <span class="hint" id="tracks-hint" hidden>Or tap your favorites from the tracklist:</span><div class="tracklist" id="tracks" hidden></div></div>
       <div class="field"><label for="f-note">A line about it (optional)</label><textarea id="f-note" maxlength="300">${esc((mine && mine.note) || '')}</textarea></div>

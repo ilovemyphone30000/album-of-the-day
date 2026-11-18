@@ -1,0 +1,12 @@
+{
+  "name": "AOTD: Album of the Day",
+  "short_name": "AOTD",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#E8EBF0",
+  "theme_color": "#0F1224",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
