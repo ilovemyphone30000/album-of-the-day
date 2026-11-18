@@ -414,10 +414,7 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
           await load(`https://www.gstatic.com/firebasejs/${V}/firebase-app-compat.js`);
           await load(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore-compat.js`);
           if (!firebase.apps.length) firebase.initializeApp(cfg);
-          const db = firebase.firestore();
-          // Keep a copy on the device so the log opens instantly and survives a bad signal.
-          try { await db.enablePersistence({ synchronizeTabs: true }); } catch {}
-          return db;
+          return firebase.firestore();
         } catch { return null; }
       },
     };
