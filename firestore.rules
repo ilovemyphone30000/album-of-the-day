@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Anyone with the link can read and write the three collections the site uses.
+    // Size limits keep a bad write from filling the database.
+    match /albums/{id} {
+      allow read: if true;
+      allow write: if request.resource == null || request.resource.size() < 4000;
+    }
+    match /logs/{id} {
+      allow read: if true;
+      allow write: if request.resource == null || request.resource.size() < 6000;
+    }
+    match /ranks/{id} {
+      allow read: if true;
+      allow write: if request.resource == null || request.resource.size() < 20000;
+    }
+  }
+}
