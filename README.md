@@ -1,4 +1,4 @@
-# Album of the Day
+# AOTD (Album of the Day)
 
 A shared log for the album each of us listens to every day: favorite songs, a rating if you want one,
 a ranking against everything else, and a queue of albums to hear next, tagged with who suggested them.

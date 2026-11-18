@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <meta name="robots" content="noindex">
-<title>Album of the Day</title>
+<title>AOTD</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%232A44F5'/%3E%3Ccircle cx='50' cy='50' r='34' fill='%23F0481F'/%3E%3Ccircle cx='50' cy='50' r='9' fill='%23F2C500'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -73,7 +73,7 @@ a { color: inherit; }
 .top > div { min-width: 0; }
 h1 {
   margin: 0; font-weight: 800; font-stretch: 75%; text-transform: uppercase;
-  font-size: clamp(40px, 9vw, 68px); line-height: .88; letter-spacing: -.02em;
+  font-size: clamp(64px, 16vw, 112px); line-height: .82; letter-spacing: -.03em;
 }
 .stats { margin: 10px 0 0; font: 500 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .who {
@@ -134,7 +134,21 @@ h1 {
 .feed { margin-top: 12px; }
 .entry { display: grid; grid-template-columns: 128px minmax(0, 1fr); gap: 20px; padding: 24px 0; border-top: 1px solid var(--rule); }
 .entry:first-child { border-top: 0; }
-.sleeve { display: block; width: 100%; aspect-ratio: 1; border: 1.5px solid var(--fg); background: var(--card); }
+.sleeve { display: block; width: 100%; aspect-ratio: 1; border: 1.5px solid var(--fg); background: var(--card); object-fit: cover; }
+.cprev { flex: none; width: 46px; height: 46px; border: 1.5px solid var(--fg); background: var(--card); overflow: hidden; }
+.cprev .sleeve { border: 0; }
+.hint { font: 400 12px var(--mono); color: var(--muted); }
+.sugg { display: grid; border: 1.5px solid var(--fg); background: var(--card); margin-top: 2px; max-height: 280px; overflow-y: auto; }
+.sugg[hidden] { display: none; }
+.sugg button { display: flex; gap: 10px; align-items: center; text-align: left; border: 0; border-top: 1px solid var(--rule); background: transparent; padding: 6px 8px; min-height: 52px; }
+.sugg button:first-child { border-top: 0; }
+.sugg button:hover, .sugg button:focus-visible { background: var(--paper); }
+.sugg img { width: 40px; height: 40px; flex: none; object-fit: cover; border: 1px solid var(--fg); }
+.sugg .st { display: block; font-weight: 700; font-stretch: 90%; line-height: 1.15; overflow-wrap: anywhere; }
+.sugg .sa { display: block; font: 400 12px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+.chip.pickable { cursor: pointer; background: transparent; color: inherit; }
+.chip.pickable[aria-pressed="true"] { background: var(--fg); color: var(--paper); border-color: var(--fg); }
+.tracks { max-height: 150px; overflow-y: auto; margin-top: 4px; }
 .meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font: 500 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .entry h3, .row h3 {
   margin: 8px 0 0; font-weight: 750; font-stretch: 82%; font-size: clamp(24px, 5vw, 34px); line-height: 1.02; letter-spacing: -.01em; text-wrap: balance; overflow-wrap: anywhere;
@@ -312,7 +326,12 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
   /* ---------- sleeves ---------- */
   function hash(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
   function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  const COVER_OK = /^https:\/\/is\d*-ssl\.mzstatic\.com\//;
   function sleeve(a) {
+    if (a.cover && COVER_OK.test(a.cover)) return `<img class="sleeve" src="${esc(a.cover)}" alt="Cover of ${esc(a.title)}" loading="lazy" referrerpolicy="no-referrer" data-k="${esc(a.id || '')}">`;
+    return sleeveSvg(a);
+  }
+  function sleeveSvg(a) {
     const r = rng(hash(a.title + '|' + a.artist));
     const inks = ['var(--j)', 'var(--n)', 'var(--i)', 'var(--fg)', 'var(--o)'];
     const pick = (not = []) => { let c; do { c = inks[Math.floor(r() * inks.length)]; } while (not.includes(c)); return c; };
@@ -382,8 +401,8 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
       <a href="#queue" ${S.tab === 'queue' ? 'aria-current="page"' : ''}>Up next<span class="count">${nQ}</span></a>
       <a href="#ranking" ${S.tab === 'ranking' ? 'aria-current="page"' : ''}>Ranking<span class="count">${D.group.length}</span></a></nav>`;
     const view = S.status === 'loading' && !S.got.albums ? `<p class="banner">Loading the log…</p>` : S.tab === 'queue' ? viewQueue() : S.tab === 'ranking' ? viewRanking() : viewLog();
-    $('app').innerHTML = `<header class="top"><div><h1>Album of<br>the Day</h1>
-      <p class="stats">${nL} logged · ${nQ} up next · ${peopleKeys().length} listeners</p></div>${me}</header>${banner}${nav}${view}`;
+    $('app').innerHTML = `<header class="top"><div><h1>AOTD</h1>
+      <p class="stats">Album of the Day · ${nL} logged · ${nQ} up next · ${peopleKeys().length} listeners</p></div>${me}</header>${banner}${nav}${view}`;
   }
 
   const w = () => S.canWrite && S.status !== 'nodb';
@@ -500,19 +519,77 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
   const suggestPicks = cur => `<div class="picks" id="sug" role="group" aria-label="Suggested by">
     ${PEOPLE.map(p => `<button type="button" class="pick ${pcls(p.key)}" data-act="sug" data-v="${p.name}" aria-pressed="${cur === p.name}">${p.name}</button>`).join('')}
     <button type="button" class="pick" data-act="sug" data-v="" aria-pressed="${!cur}">Nobody</button></div>`;
-  const albumFields = a => `<div class="field"><label for="f-title">Album</label><input id="f-title" required maxlength="120" value="${esc(a.title || '')}" autocomplete="off"></div>
+  const coverPrev = a => (a.cover && COVER_OK.test(a.cover)) ? `<img class="sleeve" src="${esc(a.cover)}" alt="" referrerpolicy="no-referrer">` : '';
+  const albumFields = a => `<div class="field"><label for="f-title">Album</label>
+    <div class="addrow"><div class="cprev" id="cover-prev">${coverPrev(a)}</div><input id="f-title" required maxlength="120" value="${esc(a.title || '')}" autocomplete="off" placeholder="Start typing to search"></div>
+    <span class="hint" id="sugg-note">Pick a match to fill in the artist, year and cover.</span><div class="sugg" id="sugg" hidden></div></div>
     <div class="grid2"><div class="field"><label for="f-artist">Artist</label><input id="f-artist" required maxlength="120" value="${esc(a.artist || '')}" autocomplete="off"></div>
     <div class="field"><label for="f-year">Year</label><input id="f-year" inputmode="numeric" maxlength="4" value="${esc(a.year || '')}" autocomplete="off"></div></div>
     <div class="field"><span class="lab">Suggested by</span>${suggestPicks(a.suggestedBy || '')}</div>`;
   const readAlbum = () => ({
     title: $('f-title').value.trim(), artist: $('f-artist').value.trim(),
     year: $('f-year').value.trim().replace(/\D/g, '').slice(0, 4), suggestedBy: S.sheet.suggested || '',
+    cover: S.sheet.cover || '', itunesId: S.sheet.itunesId || '',
   });
+
+  /* ---------- album search (Apple iTunes Search API: free, no key) ---------- */
+  let searchTimer, searchN = 0;
+  const hideSugg = () => { const s = $('sugg'); if (s) { s.hidden = true; s.innerHTML = ''; } };
+  function scheduleSearch() {
+    clearTimeout(searchTimer);
+    const q = `${($('f-title') || {}).value || ''} ${($('f-artist') || {}).value || ''}`.trim();
+    if (q.length < 2) { hideSugg(); return; }
+    searchTimer = setTimeout(() => runSearch(q), 300);
+  }
+  async function runSearch(q) {
+    const n = ++searchN;
+    try {
+      const r = await fetch(`https://itunes.apple.com/search?media=music&entity=album&limit=120&term=${encodeURIComponent(q)}`);
+      const j = await r.json();
+      if (n !== searchN || !S.sheet || !$('sugg')) return;
+      const all = (j.results || []).filter(x => x.collectionName && x.collectionId);
+      const albums = all.filter(x => !/ - (Single|EP)$/i.test(x.collectionName));
+      const qt = new Set(q.toLowerCase().match(/\w+/g) || []);
+      const score = x => [...new Set((`${x.collectionName} ${x.artistName}`).toLowerCase().match(/\w+/g) || [])].filter(t => qt.has(t)).length;
+      const ranked = (albums.length ? albums : all).map((x, i) => [x, score(x), i]).sort((a, b) => b[1] - a[1] || a[2] - b[2]).map(a => a[0]);
+      S.sheet.results = ranked.slice(0, 6).map(x => ({
+        id: String(x.collectionId), title: x.collectionName, artist: x.artistName, year: (x.releaseDate || '').slice(0, 4),
+        thumb: x.artworkUrl60 || '', cover: (x.artworkUrl100 || '').replace('100x100bb', '400x400bb'),
+      }));
+      renderSugg();
+    } catch { if (n === searchN && $('sugg-note')) $('sugg-note').textContent = "Couldn't search just now. You can type the details in by hand."; }
+  }
+  function renderSugg() {
+    const s = $('sugg'); if (!s || !S.sheet) return;
+    const res = S.sheet.results || [];
+    s.hidden = !res.length;
+    s.innerHTML = res.map((x, i) => `<button type="button" data-act="pickalbum" data-i="${i}">${COVER_OK.test(x.thumb) ? `<img src="${esc(x.thumb)}" alt="" referrerpolicy="no-referrer">` : ''}
+      <span><span class="st">${esc(x.title)}</span><span class="sa">${esc(x.artist)}${x.year ? ' · ' + esc(x.year) : ''}</span></span></button>`).join('');
+  }
+  function pickAlbum(i) {
+    const x = (S.sheet.results || [])[i]; if (!x) return;
+    $('f-title').value = x.title; $('f-artist').value = x.artist; $('f-year').value = x.year;
+    S.sheet.cover = x.cover; S.sheet.itunesId = x.id; S.sheet.tracks = null;
+    $('cover-prev').innerHTML = coverPrev({ cover: x.cover });
+    hideSugg(); fetchTracks();
+  }
+  async function fetchTracks() {
+    const sh = S.sheet; if (!sh || sh.type !== 'log' || !sh.itunesId) return;
+    const id = sh.itunesId;
+    try {
+      const r = await fetch(`https://itunes.apple.com/lookup?id=${encodeURIComponent(id)}&entity=song&limit=200`);
+      const j = await r.json();
+      if (S.sheet !== sh || sh.itunesId !== id) return;
+      sh.tracks = (j.results || []).filter(x => x.wrapperType === 'track' && x.trackName)
+        .sort((a, b) => (a.discNumber - b.discNumber) || (a.trackNumber - b.trackNumber)).map(x => x.trackName);
+      renderFavs();
+    } catch {}
+  }
 
   function openQueue(id) {
     if (!needMe(() => openQueue(id)) || !needDb()) return;
     const a = id ? D.byId.get(id) : null;
-    S.sheet = { type: 'queue', id, suggested: a ? a.suggestedBy || '' : (PEOPLE.some(p => p.name === S.me.name) ? S.me.name : ''), armed: false };
+    S.sheet = { type: 'queue', id, cover: a ? a.cover || '' : '', itunesId: a ? a.itunesId || '' : '', suggested: a ? a.suggestedBy || '' : (PEOPLE.some(p => p.name === S.me.name) ? S.me.name : ''), armed: false };
     openSheet(`<form id="queue-form"><h2>${a ? 'Edit album' : 'Add to queue'}</h2><p class="lede">An album you want the group to hear later.</p>
       ${albumFields({ ...(a || {}), suggestedBy: S.sheet.suggested })}
       <div class="foot"><button class="btn primary" type="submit">${a ? 'Save' : 'Add to queue'}</button><button class="btn" type="button" data-act="close">Cancel</button>
@@ -523,7 +600,8 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
     if (!needMe(() => openLog(id)) || !needDb()) return;
     const a = id ? D.byId.get(id) : null;
     const mine = id ? (D.logsBy[id] || []).find(l => slug(l.person) === S.me.key) : null;
-    S.sheet = { type: 'log', id, favs: [...((mine && mine.favorites) || [])], suggested: a ? a.suggestedBy || '' : '', armed: false };
+    S.sheet = { type: 'log', id, favs: [...((mine && mine.favorites) || [])], suggested: a ? a.suggestedBy || '' : '', armed: false,
+      cover: a ? a.cover || '' : '', itunesId: a ? a.itunesId || '' : '', tracks: null };
     const dateVal = a && a.status === 'listened' && a.date ? a.date : today();
     const album = a ? `<details class="more"><summary>${esc(a.title)} · ${esc(a.artist)}, edit details</summary>${albumFields(a)}
         ${a.status === 'listened' ? `<div class="foot"><button class="btn danger small" type="button" data-act="del-album">Delete album from the log</button></div>` : ''}</details>`
@@ -534,14 +612,22 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
       <p class="sec">${esc(S.me.name)}'s take</p>
       <div class="field"><label for="f-rating">Rating, 0 to 10 (optional)</label><input id="f-rating" type="number" min="0" max="10" step="0.1" inputmode="decimal" value="${mine && typeof mine.rating === 'number' ? mine.rating : ''}" placeholder="Skip if you'd rather not"></div>
       <div class="field"><label for="f-fav">Favorite songs</label><div class="addrow"><input id="f-fav" maxlength="100" placeholder="Song title, then Enter" autocomplete="off"><button class="btn" type="button" data-act="addfav">Add</button></div>
-        <div class="chips" id="favs"></div></div>
+        <div class="chips" id="favs"></div>
+        <span class="hint" id="tracks-hint" hidden>Or tap songs from the tracklist:</span><div class="chips tracks" id="tracks" hidden></div></div>
       <div class="field"><label for="f-note">A line about it (optional)</label><textarea id="f-note" maxlength="300">${esc((mine && mine.note) || '')}</textarea></div>
       <div class="foot"><button class="btn primary" type="submit">Save</button><button class="btn" type="button" data-act="close">Cancel</button></div></form>`, a ? 'f-rating' : 'f-title');
     renderFavs();
+    fetchTracks();
   }
   function renderFavs() {
     const el = $('favs'); if (!el || !S.sheet) return;
     el.innerHTML = S.sheet.favs.map((s, i) => `<span class="chip">${esc(s)}<button type="button" data-act="rmfav" data-i="${i}" aria-label="Remove ${esc(s)}">×</button></span>`).join('');
+    const tr = $('tracks'), th = $('tracks-hint'), list = S.sheet.tracks || [];
+    if (tr) {
+      tr.hidden = th.hidden = !list.length;
+      const on = new Set(S.sheet.favs.map(f => f.toLowerCase()));
+      tr.innerHTML = list.map((t, i) => `<button type="button" class="chip pickable" data-act="picktrack" data-i="${i}" aria-pressed="${on.has(t.toLowerCase())}">${esc(t)}</button>`).join('');
+    }
   }
   function addFav() {
     const inp = $('f-fav'); const v = inp.value.trim(); if (!v) return;
@@ -646,6 +732,12 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
         el.parentElement.querySelectorAll('.pick').forEach(b => b.setAttribute('aria-pressed', String(b === el)));
         break;
       }
+      case 'pickalbum': pickAlbum(+el.dataset.i); break;
+      case 'picktrack': {
+        const t = S.sheet.tracks[+el.dataset.i], at = S.sheet.favs.findIndex(f => f.toLowerCase() === t.toLowerCase());
+        if (at >= 0) S.sheet.favs.splice(at, 1); else S.sheet.favs.push(t);
+        renderFavs(); break;
+      }
       case 'addfav': addFav(); break;
       case 'rmfav': S.sheet.favs.splice(+el.dataset.i, 1); renderFavs(); break;
       case 'rank-yes': rankAnswer(true); break;
@@ -670,6 +762,15 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
     else if (id === 'log-form') saveLog(e);
     else if (id === 'other-form') { e.preventDefault(); setMe($('other-name').value); }
   });
+  document.addEventListener('input', e => { if (e.target.id === 'f-title' || e.target.id === 'f-artist') scheduleSearch(); });
+  document.addEventListener('click', e => { if (!e.target.closest('#sugg') && e.target.id !== 'f-title' && e.target.id !== 'f-artist') hideSugg(); });
+  // A cover that fails to load falls back to the generated sleeve.
+  document.addEventListener('error', e => {
+    const img = e.target;
+    if (!img || img.tagName !== 'IMG' || !img.dataset || !img.dataset.k) return;
+    const a = D && D.byId.get(img.dataset.k); if (!a) return;
+    const t = document.createElement('template'); t.innerHTML = sleeveSvg(a); img.replaceWith(t.content.firstChild);
+  }, true);
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && sheetEl.classList.contains('open')) closeSheet();
     if (e.key === 'Enter' && e.target.id === 'f-fav') { e.preventDefault(); addFav(); }
