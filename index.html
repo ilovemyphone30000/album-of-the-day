@@ -82,6 +82,28 @@ h1 {
 }
 .who .tag { font-size: 12px; }
 
+/* this week */
+.week { margin-top: 22px; }
+.wk-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; font: 500 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.wk-nav { display: flex; gap: 4px; }
+.wk-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.day { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 4px; width: 100%; padding: 0; border: 0; background: transparent; text-align: center; min-width: 0; }
+.day .face { width: 100%; }
+.day .dow { font: 500 10.5px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.day.today .dow { color: var(--paper); background: var(--fg); }
+.day .face { position: relative; display: block; aspect-ratio: 1; border: 1.5px dashed var(--rule); overflow: hidden; }
+.day.has .face { border: 1.5px solid var(--fg); }
+.day.has { cursor: pointer; }
+.day.has:hover .face, .day:not(.future):not(.has):not([disabled]):hover .face { outline: 3px solid var(--focus); outline-offset: -1px; }
+.day .face .sleeve { border: 0; position: absolute; inset: 0; width: 100%; height: 100%; }
+.day .dn { position: absolute; left: 0; bottom: 0; padding: 1px 5px; background: var(--paper); color: var(--fg); font: 600 12px/1.3 var(--mono); font-variant-numeric: tabular-nums; }
+.day:not(.has) .dn { left: 50%; top: 50%; bottom: auto; transform: translate(-50%, -50%); background: transparent; font-size: 15px; font-weight: 500; color: var(--muted); }
+.day.today:not(.has) .face { border: 1.5px solid var(--fg); }
+.day.today:not(.has) .dn { color: var(--fg); }
+.day.future { opacity: .45; }
+.day .more { position: absolute; right: 0; top: 0; padding: 0 4px; background: var(--fg); color: var(--paper); font: 600 10px/1.5 var(--mono); }
+.day[disabled] { cursor: default; }
+
 /* nav */
 .nav { display: flex; gap: 4px 24px; margin-top: 28px; border-bottom: 1.5px solid var(--fg); flex-wrap: wrap; }
 .nav a {
@@ -146,9 +168,30 @@ h1 {
 .sugg img { width: 40px; height: 40px; flex: none; object-fit: cover; border: 1px solid var(--fg); }
 .sugg .st { display: block; font-weight: 700; font-stretch: 90%; line-height: 1.15; overflow-wrap: anywhere; }
 .sugg .sa { display: block; font: 400 12px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
-.chip.pickable { cursor: pointer; background: transparent; color: inherit; }
-.chip.pickable[aria-pressed="true"] { background: var(--fg); color: var(--paper); border-color: var(--fg); }
-.tracks { max-height: 150px; overflow-y: auto; margin-top: 4px; }
+.roll { display: flex; align-items: flex-start; justify-content: center; height: 1em; overflow: hidden; font: 600 72px/1 var(--mono); font-variant-numeric: tabular-nums; user-select: none; -webkit-user-select: none; }
+.roll .col { width: .62em; height: 1em; overflow: hidden; }
+.roll .col.tens { opacity: 0; transition: opacity .2s; }
+.roll .col.tens.on { opacity: 1; }
+.roll .st { display: flex; flex-direction: column; transition: transform .38s cubic-bezier(.2, .9, .3, 1.12); }
+.roll .st span { display: block; height: 1em; text-align: center; }
+.roll .dot { width: .3em; text-align: center; }
+.roll.unset { color: var(--muted); opacity: .55; }
+.roll.shake { animation: shake .35s; }
+@keyframes shake { 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(4px); } }
+.rate-row { display: flex; align-items: center; gap: 10px; }
+.rate-row input[type=range] { flex: 1; min-width: 0; accent-color: var(--fg); height: 32px; }
+.rate .hint { min-height: 1.4em; text-align: center; }
+@media (prefers-reduced-motion: reduce) { .roll .st, .roll .col.tens { transition: none; } .roll.shake { animation: none; } }
+.tracklist { display: grid; margin-top: 4px; border: 1.5px solid var(--fg); background: var(--card); }
+.tracklist[hidden] { display: none; }
+.trk { display: grid; grid-template-columns: 28px minmax(0, 1fr) 22px; gap: 8px; align-items: baseline; text-align: left; border: 0; border-top: 1px solid var(--rule); background: transparent; padding: 7px 10px; min-height: 36px; }
+.trk:first-child { border-top: 0; }
+.trk:hover { background: var(--paper); }
+.trk .n { font: 400 12px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
+.trk .t { overflow-wrap: anywhere; }
+.trk .m { text-align: center; }
+.trk[aria-pressed="true"] { background: var(--fg); color: var(--paper); }
+.trk[aria-pressed="true"] .n { color: inherit; opacity: .7; }
 .meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font: 500 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .entry h3, .row h3 {
   margin: 8px 0 0; font-weight: 750; font-stretch: 82%; font-size: clamp(24px, 5vw, 34px); line-height: 1.02; letter-spacing: -.01em; text-wrap: balance; overflow-wrap: anywhere;
@@ -174,6 +217,27 @@ h1 {
 .pos { font: 600 26px var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
 .row .tools { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 .row .stat { font: 500 12px var(--mono); color: var(--muted); letter-spacing: .04em; margin-top: 4px; }
+.row.rk { grid-template-columns: 30px 44px 72px minmax(0, 1fr) auto; position: relative; padding-left: 6px; background: var(--paper); }
+.grip {
+  width: 30px; height: 56px; border: 0; padding: 0; cursor: grab; touch-action: none; color: var(--muted); background: transparent;
+  background-image: radial-gradient(circle, currentColor 1.6px, transparent 2px); background-size: 10px 10px; background-position: center; background-repeat: space; opacity: .8;
+  -webkit-user-select: none; user-select: none;
+}
+.grip:hover { color: var(--fg); opacity: 1; }
+.grip:focus-visible { outline-offset: 0; }
+.row.rk .pos { transition: transform .2s; }
+.shift { transition: transform .28s cubic-bezier(.2, .9, .3, 1.15); }
+.lift {
+  z-index: 5; background: var(--card); cursor: grabbing;
+  box-shadow: 0 0 0 1.5px var(--fg), 8px 8px 0 var(--fg); transition: box-shadow .15s ease-out;
+}
+.settle { z-index: 5; transition: transform .32s cubic-bezier(.2, 1.5, .4, 1), box-shadow .3s; }
+body.dragging, body.dragging * { cursor: grabbing !important; -webkit-user-select: none; user-select: none; }
+.landed { animation: land .75s ease-out; }
+.landed .pos { animation: pop .5s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes land { 0% { background: var(--i); } 100% { background: var(--paper); } }
+@keyframes pop { 0% { transform: scale(1.7); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .shift, .settle, .landed, .landed .pos { transition: none; animation: none; } }
 .sub { margin: 28px 0 0; font: 500 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 
 @media (max-width: 600px) {
@@ -181,6 +245,8 @@ h1 {
   .take { grid-template-columns: 58px 44px minmax(0, 1fr); gap: 8px; }
   .row { grid-template-columns: 30px 56px minmax(0, 1fr); }
   .row.q { grid-template-columns: 56px minmax(0, 1fr); }
+  .row.rk { grid-template-columns: 26px 26px 56px minmax(0, 1fr); }
+  .grip { width: 26px; }
   .row > .tools { grid-column: 1 / -1; justify-content: flex-start; }
   .pos { font-size: 20px; }
 }
@@ -300,7 +366,7 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
   const TABS = ['log', 'queue', 'ranking'];
   const S = {
     me: null, tab: 'log', albums: [], logs: [], ranks: {}, got: {}, status: 'loading', slow: false,
-    canWrite: true, qFilter: 'all', rankView: 'group', sheet: null, db: null,
+    canWrite: true, weekOffset: 0, qFilter: 'all', rankView: 'group', sheet: null, db: null,
   };
   let D = null;
 
@@ -388,6 +454,7 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
 
   /* ---------- views ---------- */
   function render() {
+    if (S.drag) { S.dirty = true; return; }
     derive();
     const nL = D.listened.length, nQ = D.queue.length;
     const me = S.me ? `<button class="who ${pcls(S.me.key)}" type="button" data-act="who" aria-label="Change who is logging"><span class="tag">${esc(S.me.name)}</span>Listening as</button>`
@@ -402,10 +469,38 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
       <a href="#ranking" ${S.tab === 'ranking' ? 'aria-current="page"' : ''}>Ranking<span class="count">${D.group.length}</span></a></nav>`;
     const view = S.status === 'loading' && !S.got.albums ? `<p class="banner">Loading the log…</p>` : S.tab === 'queue' ? viewQueue() : S.tab === 'ranking' ? viewRanking() : viewLog();
     $('app').innerHTML = `<header class="top"><div><h1>AOTD</h1>
-      <p class="stats">Album of the Day · ${nL} logged · ${nQ} up next · ${peopleKeys().length} listeners</p></div>${me}</header>${banner}${nav}${view}`;
+      <p class="stats">Album of the Day · ${nL} logged · ${nQ} up next · ${peopleKeys().length} listeners</p></div>${me}</header>${banner}${weekStrip()}${nav}${view}`;
+    if (S.refocus) { const g = document.querySelector(`.grip[data-id="${S.refocus}"]`); if (g) g.focus(); S.refocus = null; }
+    if (S.landed) { const id = S.landed; setTimeout(() => { if (S.landed === id) S.landed = null; }, 900); }
   }
 
   const w = () => S.canWrite && S.status !== 'nodb';
+
+  /* ---------- this week ---------- */
+  const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  function weekStrip() {
+    const now = new Date(); const t = iso(now);
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay() + S.weekOffset * 7);
+    const days = Array.from({ length: 7 }, (_, i) => new Date(start.getFullYear(), start.getMonth(), start.getDate() + i));
+    const byDate = {};
+    D.listened.forEach(a => { if (a.date) (byDate[a.date] ||= []).push(a); });
+    const fmt = (d, o) => d.toLocaleDateString('en-US', o);
+    const label = `${fmt(days[0], { month: 'short', day: 'numeric' })} – ${fmt(days[6], days[0].getMonth() === days[6].getMonth() ? { day: 'numeric' } : { month: 'short', day: 'numeric' })}`;
+    const tiles = days.map(d => {
+      const k = iso(d), list = byDate[k] || [], a = list[list.length - 1], future = k > t;
+      const dow = fmt(d, { weekday: 'short' });
+      const cls = `day${a ? ' has' : ''}${k === t ? ' today' : ''}${future ? ' future' : ''}`;
+      const aria = `${fmt(d, { weekday: 'long', month: 'long', day: 'numeric' })}${a ? `: ${a.title} by ${a.artist}` : future ? '' : ': nothing logged'}`;
+      const act = a ? 'day' : (!future && w() ? 'day' : '');
+      return `<button type="button" class="${cls}" ${act ? `data-act="day"` : 'disabled'} data-date="${k}" data-id="${a ? esc(a.id) : ''}" aria-label="${esc(aria)}">
+        <span class="dow">${dow}</span><span class="face">${a ? sleeve(a) : ''}<span class="dn">${d.getDate()}</span>${list.length > 1 ? `<span class="more">+${list.length - 1}</span>` : ''}</span></button>`;
+    }).join('');
+    return `<section class="week" aria-label="Week of albums"><div class="wk-head"><span class="mono">${S.weekOffset === 0 ? 'This week · ' : ''}${esc(label)}</span>
+      <span class="wk-nav"><button type="button" class="btn small" data-act="wk" data-d="-1" aria-label="Previous week">‹</button>
+      <button type="button" class="btn small" data-act="wk" data-d="0" ${S.weekOffset === 0 ? 'disabled' : ''}>Today</button>
+      <button type="button" class="btn small" data-act="wk" data-d="1" aria-label="Next week" ${S.weekOffset >= 0 ? 'disabled' : ''}>›</button></span></div>
+      <div class="wk-grid">${tiles}</div></section>`;
+  }
 
   function viewLog() {
     const t = today();
@@ -427,7 +522,7 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
           <div>${(l.favorites || []).length ? `<div class="chips">${l.favorites.map(s => `<span class="chip">${esc(s)}</span>`).join('')}</div>` : ''}
           ${l.note ? `<p class="note">${esc(l.note)}</p>` : ''}</div></div>`;
       }).join('');
-      return `<article class="entry"><div>${sleeve(a)}</div><div style="min-width:0">
+      return `<article class="entry" id="e-${esc(a.id)}"><div>${sleeve(a)}</div><div style="min-width:0">
         <div class="meta"><span>№ ${String(a.no).padStart(3, '0')}</span><span>${esc(fmtDate(a.date))}</span>
           ${a.date === today() ? '<span class="tag">Today</span>' : ''}
           ${a.suggestedBy ? `<span class="tag ${pcls(slug(a.suggestedBy))}">Suggested by ${esc(a.suggestedBy)}</span>` : ''}
@@ -473,11 +568,12 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
       const ord = D.orders[v] || [];
       const mineView = S.me && S.me.key === v && w();
       const rated = id => { const l = (D.logsBy[id] || []).find(l => slug(l.person) === v); return l && typeof l.rating === 'number' ? fmtRating(l.rating) : null; };
-      body = ord.length ? `<div class="feed">${ord.map((id, i) => { const a = D.byId.get(id); return `<div class="row"><div class="pos">${i + 1}</div><div>${sleeve(a)}</div>
+      body = ord.length ? `${mineView && ord.length > 1 ? `<p class="hint" style="margin:14px 0 0">Grab the dotted handle and drag to reorder. Arrow keys work too.</p>` : ''}<div class="feed" id="rank-list">${ord.map((id, i) => { const a = D.byId.get(id);
+        return `<div class="row${mineView ? ' rk' : ''}${S.landed === id ? ' landed' : ''}" data-id="${id}">
+        ${mineView ? `<button class="grip" type="button" data-id="${id}" aria-label="Reorder ${esc(a.title)}. Drag, or use the up and down arrow keys." title="Drag to reorder"></button>` : ''}
+        <div class="pos">${i + 1}</div><div>${sleeve(a)}</div>
         <div style="min-width:0"><h3>${esc(a.title)}</h3><p class="by">${esc(a.artist)}</p>${rated(id) ? `<p class="stat">Rated ${rated(id)}</p>` : ''}</div>
-        <div class="tools">${mineView ? `<button class="btn small" type="button" data-act="mv" data-id="${id}" data-dir="-1" aria-label="Move ${esc(a.title)} up" ${i === 0 ? 'disabled' : ''}>↑</button>
-        <button class="btn small" type="button" data-act="mv" data-id="${id}" data-dir="1" aria-label="Move ${esc(a.title)} down" ${i === ord.length - 1 ? 'disabled' : ''}>↓</button>
-        <button class="btn small" type="button" data-act="rerank" data-id="${id}">Re-rank</button>` : ''}</div></div>`; }).join('')}</div>`
+        <div class="tools">${mineView ? `<button class="btn small" type="button" data-act="rerank" data-id="${id}">Re-rank</button>` : ''}</div></div>`; }).join('')}</div>`
         : `<div class="empty"><h2>${esc(nameOf(v))} hasn't ranked anything</h2><p>Rankings start when an album is logged.</p></div>`;
       if (mineView) {
         const un = D.listened.filter(a => !ord.includes(a.id)).reverse();
@@ -596,13 +692,14 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
       ${a ? `<span class="spacer"></span><button class="btn danger" type="button" data-act="del-queue">Remove</button>` : ''}</div></form>`, 'f-title');
   }
 
-  function openLog(id) {
-    if (!needMe(() => openLog(id)) || !needDb()) return;
+  function openLog(id, date) {
+    if (!needMe(() => openLog(id, date)) || !needDb()) return;
     const a = id ? D.byId.get(id) : null;
     const mine = id ? (D.logsBy[id] || []).find(l => slug(l.person) === S.me.key) : null;
     S.sheet = { type: 'log', id, favs: [...((mine && mine.favorites) || [])], suggested: a ? a.suggestedBy || '' : '', armed: false,
-      cover: a ? a.cover || '' : '', itunesId: a ? a.itunesId || '' : '', tracks: null };
-    const dateVal = a && a.status === 'listened' && a.date ? a.date : today();
+      cover: a ? a.cover || '' : '', itunesId: a ? a.itunesId || '' : '', tracks: null,
+      rating: mine && typeof mine.rating === 'number' ? mine.rating : null };
+    const dateVal = a && a.status === 'listened' && a.date ? a.date : (date || today());
     const album = a ? `<details class="more"><summary>${esc(a.title)} · ${esc(a.artist)}, edit details</summary>${albumFields(a)}
         ${a.status === 'listened' ? `<div class="foot"><button class="btn danger small" type="button" data-act="del-album">Delete album from the log</button></div>` : ''}</details>`
       : `<p class="lede" style="margin-bottom:0">Add the album first, then your take.</p>${albumFields({})}`;
@@ -610,14 +707,45 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
       <p class="lede">Listening as ${esc(S.me.name)}.</p>${album}
       <div class="field"><label for="f-date">Listened on</label><input id="f-date" type="date" required value="${dateVal}"></div>
       <p class="sec">${esc(S.me.name)}'s take</p>
-      <div class="field"><label for="f-rating">Rating, 0 to 10 (optional)</label><input id="f-rating" type="number" min="0" max="10" step="0.1" inputmode="decimal" value="${mine && typeof mine.rating === 'number' ? mine.rating : ''}" placeholder="Skip if you'd rather not"></div>
+      <div class="field rate"><span class="lab" id="rate-lab">Rating out of 10</span>
+        <div class="roll${S.sheet.rating == null ? ' unset' : ''}" id="roll" role="img" aria-label="Rating">${rollHtml()}</div>
+        <div class="rate-row"><button type="button" class="btn small" data-act="rate-step" data-d="-1" aria-label="Lower rating by 0.1">−</button>
+          <input id="f-rating" type="range" min="0" max="10" step="0.1" value="${S.sheet.rating == null ? 5 : S.sheet.rating}" aria-labelledby="rate-lab">
+          <button type="button" class="btn small" data-act="rate-step" data-d="1" aria-label="Raise rating by 0.1">+</button></div>
+        <span class="hint" id="rate-hint">${S.sheet.rating == null ? 'Slide to set your rating.' : ''}</span></div>
       <div class="field"><label for="f-fav">Favorite songs</label><div class="addrow"><input id="f-fav" maxlength="100" placeholder="Song title, then Enter" autocomplete="off"><button class="btn" type="button" data-act="addfav">Add</button></div>
         <div class="chips" id="favs"></div>
-        <span class="hint" id="tracks-hint" hidden>Or tap songs from the tracklist:</span><div class="chips tracks" id="tracks" hidden></div></div>
+        <span class="hint" id="tracks-hint" hidden>Or tap your favorites from the tracklist:</span><div class="tracklist" id="tracks" hidden></div></div>
       <div class="field"><label for="f-note">A line about it (optional)</label><textarea id="f-note" maxlength="300">${esc((mine && mine.note) || '')}</textarea></div>
       <div class="foot"><button class="btn primary" type="submit">Save</button><button class="btn" type="button" data-act="close">Cancel</button></div></form>`, a ? 'f-rating' : 'f-title');
     renderFavs();
+    setRoll(S.sheet.rating == null ? 0 : S.sheet.rating);
     fetchTracks();
+  }
+
+  /* ---------- rating roller ---------- */
+  function rollHtml() {
+    const d = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<span>${n}</span>`).join('');
+    return `<div class="col tens"><div class="st"><span>0</span><span>1</span></div></div><div class="col"><div class="st">${d}</div></div><div class="dot">.</div><div class="col"><div class="st">${d}</div></div>`;
+  }
+  function setRoll(v) {
+    const el = $('roll'); if (!el) return;
+    const n = Math.round(Math.max(0, Math.min(10, v)) * 10), cols = el.querySelectorAll('.col');
+    const t = Math.floor(n / 100), o = Math.floor(n / 10) % 10, f = n % 10;
+    cols[0].querySelector('.st').style.transform = `translateY(-${t}em)`; cols[0].classList.toggle('on', !!t);
+    cols[1].querySelector('.st').style.transform = `translateY(-${o}em)`;
+    cols[2].querySelector('.st').style.transform = `translateY(-${f}em)`;
+    el.setAttribute('aria-label', `Rating ${(n / 10).toFixed(1)} out of 10`);
+  }
+  function setRating(v, fromSlider) {
+    const sh = S.sheet; if (!sh || sh.type !== 'log') return;
+    v = Math.round(Math.max(0, Math.min(10, v)) * 10) / 10;
+    const prev = sh.rating;
+    sh.rating = v;
+    if (!fromSlider) $('f-rating').value = v;
+    $('roll').classList.remove('unset'); $('rate-hint').textContent = '';
+    setRoll(v);
+    if (prev == null || Math.floor(prev) !== Math.floor(v)) buzz(5);
   }
   function renderFavs() {
     const el = $('favs'); if (!el || !S.sheet) return;
@@ -626,7 +754,7 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
     if (tr) {
       tr.hidden = th.hidden = !list.length;
       const on = new Set(S.sheet.favs.map(f => f.toLowerCase()));
-      tr.innerHTML = list.map((t, i) => `<button type="button" class="chip pickable" data-act="picktrack" data-i="${i}" aria-pressed="${on.has(t.toLowerCase())}">${esc(t)}</button>`).join('');
+      tr.innerHTML = list.map((t, i) => `<button type="button" class="trk" data-act="picktrack" data-i="${i}" aria-pressed="${on.has(t.toLowerCase())}"><span class="n">${i + 1}</span><span class="t">${esc(t)}</span><span class="m" aria-hidden="true">${on.has(t.toLowerCase()) ? '★' : ''}</span></button>`).join('');
     }
   }
   function addFav() {
@@ -650,9 +778,12 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
     e.preventDefault(); if (!needDb()) return;
     const f = readAlbum(); if (!f.title || !f.artist) { toast('Add the album title and artist.'); return; }
     const date = $('f-date').value || today();
-    const rv = $('f-rating').value.trim();
-    let rating = rv === '' ? null : Math.min(10, Math.max(0, Math.round(parseFloat(rv) * 10) / 10));
-    if (Number.isNaN(rating)) rating = null;
+    const rating = S.sheet.rating;
+    if (rating == null) {
+      $('rate-hint').textContent = 'Set a rating before saving.';
+      const r = $('roll'); r.classList.remove('shake'); void r.offsetWidth; r.classList.add('shake');
+      $('f-rating').focus(); buzz([10, 30, 10]); return;
+    }
     const pending = $('f-fav').value.trim(); if (pending) { $('f-fav').value = ''; if (!S.sheet.favs.some(x => x.toLowerCase() === pending.toLowerCase())) S.sheet.favs.push(pending); }
     const take = { person: S.me.name, rating, favorites: S.sheet.favs, note: $('f-note').value.trim(), at: Date.now() };
     const btn = e.submitter; if (btn) btn.disabled = true;
@@ -696,12 +827,95 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
     try { await S.db.doc('ranks/' + S.me.key).set({ name: S.me.name, order }); closeSheet(); toast(`Ranked #${pos + 1} of ${order.length} on your list.`); }
     catch (err) { fail(err); }
   }
-  async function move(id, dir) {
+  // Save a new personal order. The page updates at once; the database catches up behind it.
+  async function persistOrder(order) {
+    S.ranks[S.me.key] = { name: S.me.name, order };
+    render();
+    try { await S.db.doc('ranks/' + S.me.key).set({ name: S.me.name, order }); } catch (err) { fail(err); }
+  }
+  function move(id, dir) {
     const ord = [...(D.orders[S.me.key] || [])]; const i = ord.indexOf(id), j = i + dir;
     if (i < 0 || j < 0 || j >= ord.length || !needDb()) return;
     [ord[i], ord[j]] = [ord[j], ord[i]];
-    try { await S.db.doc('ranks/' + S.me.key).set({ name: S.me.name, order: ord }); } catch (err) { fail(err); }
+    S.refocus = id; S.landed = id; buzz(8);
+    persistOrder(ord);
   }
+
+  /* ---------- drag to reorder ---------- */
+  const buzz = ms => { try { if (navigator.vibrate) navigator.vibrate(ms); } catch {} };
+  function startDrag(e, grip) {
+    if (S.drag || (e.pointerType === 'mouse' && e.button !== 0) || !needDb()) return;
+    const row = grip.closest('.rk'), list = row.parentElement;
+    const rows = [...list.querySelectorAll(':scope > .rk')];
+    const i0 = rows.indexOf(row), sy = window.scrollY;
+    const rects = rows.map(r => r.getBoundingClientRect());
+    const d = S.drag = {
+      grip, row, rows, i0, j: i0, pid: e.pointerId, cy: e.clientY, ids: rows.map(r => r.dataset.id),
+      top0: rects.map(r => r.top + sy), h: rects.map(r => r.height), grab: e.clientY + sy - (rects[i0].top + sy), raf: 0,
+    };
+    try { grip.setPointerCapture(e.pointerId); } catch {}
+    row.classList.add('lift');
+    rows.forEach(r => { if (r !== row) r.classList.add('shift'); });
+    document.body.classList.add('dragging');
+    buzz(12);
+    d.raf = requestAnimationFrame(dragTick);
+    e.preventDefault();
+  }
+  function dragTick() {
+    const d = S.drag; if (!d || d.ending) return;
+    dragUpdate();
+    d.raf = requestAnimationFrame(dragTick);
+  }
+  function dragUpdate() {
+    const d = S.drag; if (!d || d.ending) return;
+    const vh = window.innerHeight, edge = 80; let v = 0;
+    if (d.cy < edge) v = -Math.ceil((edge - d.cy) / 5); else if (d.cy > vh - edge) v = Math.ceil((d.cy - (vh - edge)) / 5);
+    if (v) window.scrollBy(0, v);
+    const top = d.cy + window.scrollY - d.grab;
+    d.row.style.transform = `translateY(${top - d.top0[d.i0]}px) scale(1.025)`;
+    const mid = top + d.h[d.i0] / 2; let j = 0;
+    d.rows.forEach((r, k) => { if (k !== d.i0 && d.top0[k] + d.h[k] / 2 < mid) j++; });
+    if (j !== d.j) { d.j = j; dragShift(d); buzz(6); }
+  }
+  function dragShift(d) {
+    const { i0, j } = d;
+    d.rows.forEach((r, k) => {
+      if (k === i0) { r.querySelector('.pos').textContent = j + 1; return; }
+      let dy = 0, n = k;
+      if (i0 < j && k > i0 && k <= j) { dy = -d.h[i0]; n = k - 1; } else if (i0 > j && k >= j && k < i0) { dy = d.h[i0]; n = k + 1; }
+      r.style.transform = dy ? `translateY(${dy}px)` : '';
+      r.querySelector('.pos').textContent = n + 1;
+    });
+  }
+  function endDrag(commit) {
+    const d = S.drag; if (!d || d.ending) return;
+    d.ending = true; cancelAnimationFrame(d.raf);
+    if (!commit) { d.j = d.i0; dragShift(d); }
+    const { i0, j } = d; let dy = 0;
+    if (j > i0) for (let k = i0 + 1; k <= j; k++) dy += d.h[k]; else for (let k = j; k < i0; k++) dy -= d.h[k];
+    d.row.classList.remove('lift'); d.row.classList.add('settle');
+    d.row.style.transform = `translateY(${dy}px)`;
+    try { d.grip.releasePointerCapture(d.pid); } catch {}
+    document.body.classList.remove('dragging');
+    buzz(commit && j !== i0 ? [8, 40, 14] : 6);
+    setTimeout(() => {
+      S.drag = null; S.dirty = false;
+      if (commit && j !== i0) {
+        const order = d.ids.slice(); order.splice(j, 0, order.splice(i0, 1)[0]);
+        S.landed = d.ids[i0]; persistOrder(order);
+        toast(`Moved to #${j + 1}`);
+      } else render();
+    }, 340);
+  }
+  document.addEventListener('pointerdown', e => { const g = e.target.closest && e.target.closest('.grip'); if (g) startDrag(e, g); });
+  document.addEventListener('pointermove', e => { if (S.drag && e.pointerId === S.drag.pid) { S.drag.cy = e.clientY; dragUpdate(); } });
+  document.addEventListener('pointerup', e => { if (S.drag && e.pointerId === S.drag.pid) endDrag(true); });
+  document.addEventListener('pointercancel', e => { if (S.drag && e.pointerId === S.drag.pid) endDrag(false); });
+  document.addEventListener('keydown', e => {
+    if (S.drag && e.key === 'Escape') { endDrag(false); return; }
+    const g = e.target.closest && e.target.closest('.grip');
+    if (g && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) { e.preventDefault(); move(g.dataset.id, e.key === 'ArrowUp' ? -1 : 1); }
+  });
 
   async function deleteAlbum() {
     const id = S.sheet.id; if (!id || !needDb()) return;
@@ -722,6 +936,13 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
       case 'setme': setMe(el.dataset.name); break;
       case 'close': closeSheet(); break;
       case 'log-new': openLog(null); break;
+      case 'wk': S.weekOffset = el.dataset.d === '0' ? 0 : Math.min(0, S.weekOffset + +el.dataset.d); render(); break;
+      case 'day': {
+        if (!id) { openLog(null, el.dataset.date); break; }
+        const go = () => { const e = document.getElementById('e-' + id); if (e) { e.scrollIntoView({ behavior: 'smooth', block: 'start' }); S.landed = null; e.classList.remove('landed'); void e.offsetWidth; e.classList.add('landed'); } };
+        if (S.tab !== 'log') { location.hash = '#log'; setTimeout(go, 80); } else go();
+        break;
+      }
       case 'log-take': openLog(id); break;
       case 'queue-new': openQueue(null); break;
       case 'queue-edit': openQueue(id); break;
@@ -732,6 +953,7 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
         el.parentElement.querySelectorAll('.pick').forEach(b => b.setAttribute('aria-pressed', String(b === el)));
         break;
       }
+      case 'rate-step': setRating((S.sheet.rating == null ? 5 : S.sheet.rating) + 0.1 * +el.dataset.d, false); break;
       case 'pickalbum': pickAlbum(+el.dataset.i); break;
       case 'picktrack': {
         const t = S.sheet.tracks[+el.dataset.i], at = S.sheet.favs.findIndex(f => f.toLowerCase() === t.toLowerCase());
@@ -762,7 +984,10 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
     else if (id === 'log-form') saveLog(e);
     else if (id === 'other-form') { e.preventDefault(); setMe($('other-name').value); }
   });
-  document.addEventListener('input', e => { if (e.target.id === 'f-title' || e.target.id === 'f-artist') scheduleSearch(); });
+  document.addEventListener('input', e => {
+    if (e.target.id === 'f-title' || e.target.id === 'f-artist') scheduleSearch();
+    else if (e.target.id === 'f-rating') setRating(parseFloat(e.target.value), true);
+  });
   document.addEventListener('click', e => { if (!e.target.closest('#sugg') && e.target.id !== 'f-title' && e.target.id !== 'f-artist') hideSugg(); });
   // A cover that fails to load falls back to the generated sleeve.
   document.addEventListener('error', e => {
