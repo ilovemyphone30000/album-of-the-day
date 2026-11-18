@@ -90,7 +90,7 @@ h1 {
 .day { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 4px; width: 100%; padding: 0; border: 0; background: transparent; text-align: center; min-width: 0; }
 .day .face { width: 100%; }
 .day .dow { font: 500 10.5px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-.day.today .dow { color: var(--paper); background: var(--fg); }
+.day.is-today .dow { color: var(--paper); background: var(--fg); }
 .day .face { position: relative; display: block; aspect-ratio: 1; border: 1.5px dashed var(--rule); overflow: hidden; }
 .day.has .face { border: 1.5px solid var(--fg); }
 .day.has { cursor: pointer; }
@@ -98,11 +98,21 @@ h1 {
 .day .face .sleeve { border: 0; position: absolute; inset: 0; width: 100%; height: 100%; }
 .day .dn { position: absolute; left: 0; bottom: 0; padding: 1px 5px; background: var(--paper); color: var(--fg); font: 600 12px/1.3 var(--mono); font-variant-numeric: tabular-nums; }
 .day:not(.has) .dn { left: 50%; top: 50%; bottom: auto; transform: translate(-50%, -50%); background: transparent; font-size: 15px; font-weight: 500; color: var(--muted); }
-.day.today:not(.has) .face { border: 1.5px solid var(--fg); }
-.day.today:not(.has) .dn { color: var(--fg); }
+.day.is-today:not(.has) .face { border: 1.5px solid var(--fg); }
+.day.is-today:not(.has) .dn { color: var(--fg); }
 .day.future { opacity: .45; }
 .day .more { position: absolute; right: 0; top: 0; padding: 0 4px; background: var(--fg); color: var(--paper); font: 600 10px/1.5 var(--mono); }
 .day[disabled] { cursor: default; }
+
+/* month calendar */
+.mo-title { margin: 0; font-weight: 800; font-stretch: 78%; text-transform: uppercase; font-size: clamp(30px, 6vw, 44px); line-height: .95; letter-spacing: -.01em; }
+.mo-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-top: 16px; }
+.mo-dow { font: 500 10.5px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); text-align: center; padding-bottom: 2px; }
+.mo-grid .day.nodow { gap: 0; }
+.mo-grid .day.blank { visibility: hidden; }
+.mo-grid .day.is-today .face { outline: 3px solid var(--fg); outline-offset: 1px; }
+.mo-grid .dn { font-size: 11px; }
+.mo-grid .day:not(.has) .dn { font-size: 14px; }
 
 /* nav */
 .nav { display: flex; gap: 4px 24px; margin-top: 28px; border-bottom: 1.5px solid var(--fg); flex-wrap: wrap; }
@@ -363,10 +373,10 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
 <script>
 (() => {
   const PEOPLE = [{ key: 'jonah', name: 'Jonah' }, { key: 'nico', name: 'Nico' }, { key: 'isaac', name: 'Isaac' }];
-  const TABS = ['log', 'queue', 'ranking'];
+  const TABS = ['log', 'calendar', 'queue', 'ranking'];
   const S = {
     me: null, tab: 'log', albums: [], logs: [], ranks: {}, got: {}, status: 'loading', slow: false,
-    canWrite: true, weekOffset: 0, qFilter: 'all', rankView: 'group', sheet: null, db: null,
+    canWrite: true, weekOffset: 0, monthOffset: 0, qFilter: 'all', rankView: 'group', sheet: null, db: null,
   };
   let D = null;
 
@@ -465,11 +475,12 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
     else if (S.slow) banner = `<p class="banner">Still reaching the shared log. What you see may be out of date.</p>`;
     const nav = `<nav class="nav" aria-label="Sections">
       <a href="#log" ${S.tab === 'log' ? 'aria-current="page"' : ''}>Log<span class="count">${nL}</span></a>
+      <a href="#calendar" ${S.tab === 'calendar' ? 'aria-current="page"' : ''}>Calendar</a>
       <a href="#queue" ${S.tab === 'queue' ? 'aria-current="page"' : ''}>Up next<span class="count">${nQ}</span></a>
       <a href="#ranking" ${S.tab === 'ranking' ? 'aria-current="page"' : ''}>Ranking<span class="count">${D.group.length}</span></a></nav>`;
-    const view = S.status === 'loading' && !S.got.albums ? `<p class="banner">Loading the log…</p>` : S.tab === 'queue' ? viewQueue() : S.tab === 'ranking' ? viewRanking() : viewLog();
+    const view = S.status === 'loading' && !S.got.albums ? `<p class="banner">Loading the log…</p>` : S.tab === 'queue' ? viewQueue() : S.tab === 'ranking' ? viewRanking() : S.tab === 'calendar' ? viewCalendar() : viewLog();
     $('app').innerHTML = `<header class="top"><div><h1>AOTD</h1>
-      <p class="stats">Album of the Day · ${nL} logged · ${nQ} up next · ${peopleKeys().length} listeners</p></div>${me}</header>${banner}${weekStrip()}${nav}${view}`;
+      <p class="stats">Album of the Day · ${nL} logged · ${nQ} up next · ${peopleKeys().length} listeners</p></div>${me}</header>${banner}${S.tab === 'calendar' ? '' : weekStrip()}${nav}${view}`;
     if (S.refocus) { const g = document.querySelector(`.grip[data-id="${S.refocus}"]`); if (g) g.focus(); S.refocus = null; }
     if (S.landed) { const id = S.landed; setTimeout(() => { if (S.landed === id) S.landed = null; }, 900); }
   }
@@ -478,6 +489,35 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
 
   /* ---------- this week ---------- */
   const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  function dayTile(d, byDate, t, withDow) {
+    const k = iso(d), list = byDate[k] || [], a = list[list.length - 1], future = k > t;
+    const cls = `day${a ? ' has' : ''}${k === t ? ' is-today' : ''}${future ? ' future' : ''}${withDow ? '' : ' nodow'}`;
+    const aria = `${d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}${a ? `: ${a.title} by ${a.artist}` : future ? '' : ': nothing logged'}`;
+    const act = a ? 'day' : (!future && w() ? 'day' : '');
+    return `<button type="button" class="${cls}" ${act ? `data-act="day"` : 'disabled'} data-date="${k}" data-id="${a ? esc(a.id) : ''}" aria-label="${esc(aria)}">
+      ${withDow ? `<span class="dow">${d.toLocaleDateString('en-US', { weekday: 'short' })}</span>` : ''}<span class="face">${a ? sleeve(a) : ''}<span class="dn">${d.getDate()}</span>${list.length > 1 ? `<span class="more">+${list.length - 1}</span>` : ''}</span></button>`;
+  }
+  const datesMap = () => { const m = {}; D.listened.forEach(a => { if (a.date) (m[a.date] ||= []).push(a); }); return m; };
+  function viewCalendar() {
+    const now = new Date(), t = iso(now);
+    const first = new Date(now.getFullYear(), now.getMonth() + S.monthOffset, 1);
+    const daysIn = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
+    const byDate = datesMap();
+    let n = 0; const cells = [];
+    for (let i = 0; i < first.getDay(); i++) cells.push('<span class="day blank" aria-hidden="true"></span>');
+    for (let d = 1; d <= daysIn; d++) {
+      const dt = new Date(first.getFullYear(), first.getMonth(), d);
+      if (byDate[iso(dt)]) n++;
+      cells.push(dayTile(dt, byDate, t, false));
+    }
+    const title = first.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const dows = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(x => `<span class="mo-dow">${x}</span>`).join('');
+    return `<section class="month" aria-label="Month calendar"><div class="bar"><div><h2 class="mo-title">${esc(title)}</h2><p class="stats" style="margin:4px 0 0">${n} of ${daysIn} days logged</p></div>
+      <span class="wk-nav"><button type="button" class="btn small" data-act="mo" data-d="-1" aria-label="Previous month">‹</button>
+      <button type="button" class="btn small" data-act="mo" data-d="0" ${S.monthOffset === 0 ? 'disabled' : ''}>Today</button>
+      <button type="button" class="btn small" data-act="mo" data-d="1" aria-label="Next month" ${S.monthOffset >= 0 ? 'disabled' : ''}>›</button></span></div>
+      <div class="mo-grid" role="group">${dows}${cells.join('')}</div></section>`;
+  }
   function weekStrip() {
     const now = new Date(); const t = iso(now);
     const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay() + S.weekOffset * 7);
@@ -486,15 +526,7 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
     D.listened.forEach(a => { if (a.date) (byDate[a.date] ||= []).push(a); });
     const fmt = (d, o) => d.toLocaleDateString('en-US', o);
     const label = `${fmt(days[0], { month: 'short', day: 'numeric' })} – ${fmt(days[6], days[0].getMonth() === days[6].getMonth() ? { day: 'numeric' } : { month: 'short', day: 'numeric' })}`;
-    const tiles = days.map(d => {
-      const k = iso(d), list = byDate[k] || [], a = list[list.length - 1], future = k > t;
-      const dow = fmt(d, { weekday: 'short' });
-      const cls = `day${a ? ' has' : ''}${k === t ? ' today' : ''}${future ? ' future' : ''}`;
-      const aria = `${fmt(d, { weekday: 'long', month: 'long', day: 'numeric' })}${a ? `: ${a.title} by ${a.artist}` : future ? '' : ': nothing logged'}`;
-      const act = a ? 'day' : (!future && w() ? 'day' : '');
-      return `<button type="button" class="${cls}" ${act ? `data-act="day"` : 'disabled'} data-date="${k}" data-id="${a ? esc(a.id) : ''}" aria-label="${esc(aria)}">
-        <span class="dow">${dow}</span><span class="face">${a ? sleeve(a) : ''}<span class="dn">${d.getDate()}</span>${list.length > 1 ? `<span class="more">+${list.length - 1}</span>` : ''}</span></button>`;
-    }).join('');
+    const tiles = days.map(d => dayTile(d, byDate, t, true)).join('');
     return `<section class="week" aria-label="Week of albums"><div class="wk-head"><span class="mono">${S.weekOffset === 0 ? 'This week · ' : ''}${esc(label)}</span>
       <span class="wk-nav"><button type="button" class="btn small" data-act="wk" data-d="-1" aria-label="Previous week">‹</button>
       <button type="button" class="btn small" data-act="wk" data-d="0" ${S.weekOffset === 0 ? 'disabled' : ''}>Today</button>
@@ -936,6 +968,7 @@ details.more summary { cursor: pointer; font: 500 12px var(--mono); letter-spaci
       case 'setme': setMe(el.dataset.name); break;
       case 'close': closeSheet(); break;
       case 'log-new': openLog(null); break;
+      case 'mo': S.monthOffset = el.dataset.d === '0' ? 0 : Math.min(0, S.monthOffset + +el.dataset.d); render(); break;
       case 'wk': S.weekOffset = el.dataset.d === '0' ? 0 : Math.min(0, S.weekOffset + +el.dataset.d); render(); break;
       case 'day': {
         if (!id) { openLog(null, el.dataset.date); break; }
